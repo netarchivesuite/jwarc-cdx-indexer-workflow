@@ -77,16 +77,16 @@ public class ServiceConfig {
         ServiceConfig.configSource = configSource;
         assignConfig(YAML.resolveLayeredConfigs(configSource));
         
-        String cdx_server=serviceConfig.getString("config.workflow.cdx_server_url");
-        String input_file=serviceConfig.getString("config.workflow.input_file");
-        String output_file=serviceConfig.getString("config.workflow.output_file");
-        int threads=serviceConfig.getInteger("config.workflow.threads");
+        CDX_SERVER_URL=serviceConfig.getString("config.workflow.cdx_server_url");
+        WARCS_INPUT_LIST_FILE=serviceConfig.getString("config.workflow.input_file");
+        WARCS_OUTPUT_LIST_FILE=serviceConfig.getString("config.workflow.output_file");
+        THREADS=serviceConfig.getInteger("config.workflow.threads");
         
         log.info("Load serviceconfig with properties:" );
-        log.info("Cdx server url:"+cdx_server );
-        log.info("WARC input file list:"+input_file );
-        log.info("WARC output file list:"+output_file );
-        log.info("Number of workers:"+threads);
+        log.info("Cdx server url:"+ CDX_SERVER_URL );
+        log.info("WARC input file list:"+WARCS_INPUT_LIST_FILE );
+        log.info("WARC output file list:"+WARCS_OUTPUT_LIST_FILE );
+        log.info("Number of workers:"+THREADS);
     }
 
     private static void assignConfig(YAML conf) {

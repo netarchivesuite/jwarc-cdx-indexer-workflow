@@ -43,9 +43,10 @@ public class Main implements Callable<Integer>{
         catch(Exception e) { //Will only happen if workers can not be started
             log.error("Error starting workers. Job terminated");
             System.err.println("Error starting workers. Job terminated"); 
-            System.exit(1);
+            e.printStackTrace();
+            return 1; //Error
         }
-        
+              
         log.info("Job completed");                       
         return 0; //Exit code
     }

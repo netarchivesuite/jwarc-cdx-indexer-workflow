@@ -81,7 +81,8 @@ public class CdxIndexerWorkflow {
         }
         catch (Exception e) {            
             log.error("Error starting workers. Could not load list of WARC files or list of completed WARC files. Input file={}, Output file={}",inputFile,outoutFile ); // also log to console
-            System.out.println("Error starting workers. Could not load list of WARC files or list of completed WARC files. See log file");             
+            System.out.println("Error starting workers. Could not load list of WARC files or list of completed WARC files. See log file");
+            e.printStackTrace();
             System.exit(1); 
         }
         log.info("Input WARC-file size:"+WARCS_TO_INDEX.size());
@@ -239,7 +240,7 @@ public class CdxIndexerWorkflow {
         public CdxIndexerWorkerThread(   CdxFormat.Builder cdxFormatBuilder,int threadNumber){
             this.threadNumber=threadNumber;
             this.cdxFormatBuilder = cdxFormatBuilder;
-
+            this.setDaemon(true); //Required or the stand-alone-template will exit
         }    
 
         public void run() {

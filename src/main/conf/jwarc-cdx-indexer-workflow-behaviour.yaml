@@ -12,8 +12,8 @@
 config:
   workflow:
     cdx_server_url: http://localhost:8081/index?badLines=skip
-    input_file: ${HOME}/netarkivet.files.20230705
-    output_file: ${HOME}/netarkivet.files.20230705.COMPLETED.txt
+    input_file: /home/summanet/netarkivet.files.20230705
+    output_file: /home/summanet/netarkivet.files.20230705.COMPLETED.txt
     threads: 48
   
   # The configuration can auto-update at set intervals. See ServiceConfig for details

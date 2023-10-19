@@ -1,0 +1,48 @@
+<assembly>
+  <id>distribution</id>
+  <formats>
+    <format>tar.gz</format>
+    <format>dir</format>
+  </formats>
+
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>lib</outputDirectory>
+      <directoryMode>0755</directoryMode>
+      <fileMode>0644</fileMode>
+      <useTransitiveFiltering>true</useTransitiveFiltering>
+    </dependencySet>
+  </dependencySets>
+
+  <fileSets>
+    <fileSet>
+      <outputDirectory>./</outputDirectory>
+      <directoryMode>0755</directoryMode>
+      <fileMode>0744</fileMode>
+      <directory>${basedir}/</directory>
+      <includes>
+        <include>CHANGELOG.md</include>
+        <include>README.md</include>
+      </includes>
+    </fileSet>
+    <fileSet>
+      <outputDirectory>conf</outputDirectory>
+      <directoryMode>0755</directoryMode>
+      <fileMode>0744</fileMode>
+      <directory>src/main/conf</directory>
+      <excludes>
+        <exclude>jwarc-cdx-indexer-workflow-local.yaml</exclude>
+      </excludes>
+    </fileSet>
+    <fileSet>
+      <outputDirectory>bin</outputDirectory>
+      <directoryMode>0755</directoryMode>
+      <fileMode>0744</fileMode>
+      <directory>src/main/scripts</directory>
+      <filtered>true</filtered>
+    </fileSet>
+  </fileSets>
+
+
+</assembly>
+

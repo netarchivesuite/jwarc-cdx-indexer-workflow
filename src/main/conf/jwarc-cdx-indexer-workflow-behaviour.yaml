@@ -1,0 +1,22 @@
+#
+# This config contains behaviour data: Thread allocation, allowed fields for lookup, limits for arguments etc.
+#
+# The behaviour config is normally controlled by developers and is part of the code repository.
+# Sensitive information such as machine names and user/passwords should not be part of this config but belong
+# in the 'environment' and 'local' configurations
+#
+# It will be automatically merged with the environment config when accessed through the
+# application config system.
+#
+#
+config:
+  workflow:
+    cdx_server_url: http://localhost:8081/index?badLines=skip
+    input_file: ${HOME}/netarkivet.files.20230705
+    output_file: ${HOME}/netarkivet.files.20230705.COMPLETED.txt
+    threads: 48
+  
+  # The configuration can auto-update at set intervals. See ServiceConfig for details
+  autoupdate:
+    enabled: false
+    intervalms: 60000

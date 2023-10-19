@@ -49,10 +49,10 @@ public class ServiceConfig {
 
     private static String configSource = null;
 
-    private static int THREADS=1;
-    private static String CDX_SERVER_URL=null;
-    private static String WARCS_INPUT_LIST_FILE=null;
-    private static String WARCS_OUTPUT_LIST_FILE=null;
+    public static int THREADS=1;
+    public static String CDX_SERVER_URL=null;
+    public static String WARCS_INPUT_LIST_FILE=null;
+    public static String WARCS_OUTPUT_LIST_FILE=null;
     
     /*
     cdx_server_url: http://localhost:8081/index?badLines=skip

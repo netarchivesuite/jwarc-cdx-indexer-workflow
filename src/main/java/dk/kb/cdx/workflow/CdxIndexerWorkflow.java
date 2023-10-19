@@ -80,8 +80,8 @@ public class CdxIndexerWorkflow {
             init();            
         }
         catch (Exception e) {            
-            log.error("Error starting workflow. Input or output file could not be loaded.");
-            System.err.println("Could not load list of WARC files or list of completed WARC files"); // also log to console            
+            log.error("Error starting workers. Could not load list of WARC files or list of completed WARC files. Input file={}, Output file={}",inputFile,outoutFile ); // also log to console
+            System.out.println("Error starting workers. Could not load list of WARC files or list of completed WARC files. See log file");             
             System.exit(1); 
         }
         log.info("Input WARC-file size:"+WARCS_TO_INDEX.size());

@@ -12,10 +12,10 @@
   <artifactId>jwarc-cdx-indexer-workflow</artifactId>
   <version>1.0-SNAPSHOT</version>
 
-  <scm>
+   <scm>
     <url>https://github.com/netarchivesuite/jwarc-cdx-indexer-workflow</url>
-    <connection>git@github.com:netarchivesuite/jwarc-cdx-indexer-workflow.git</connection>
-    <developerConnection>git@github.com:netarchivesuite/jwarc-cdx-indexer-workflow.git</developerConnection>
+    <connection>scm:git:ssh://git@github.com:netarchivesuite/jwarc-cdx-indexer-workflow.git</connection>
+    <developerConnection>scm:git:ssh://git@github.com:netarchivesuite/jwarc-cdx-indexer-workflow.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
 

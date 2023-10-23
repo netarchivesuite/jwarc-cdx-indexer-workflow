@@ -39,17 +39,24 @@ If the CDX server does not return a http status. (no connection, server dead etc
 Some WARC-files will return HTTP error status from the CDX-server, but this is expected and due to corrupt WARC-files. This is mostly old ARC files with http-header errors.
 
 
-Start workflow (24 threads) (replace server url)
-setsid nohup java -Xmx16g -cp jwarc.jar  org.netpreserve.jwarc.workflows.CdxIndexerWorkflow 24 http://server.com:8081/index?badLines=skip /netarkiv-cdx/netarkivet.files.20230705  /netarkiv-cdx/netarkivet.files.20230705.COMPLETED.txt 2>&1 >> cdx_indexer_workflow.lo
-(jwarc.jar will have SNAPSHOT in filename when build, just rename)
+Starting the workflow.
+Configure the yaml property file with the 4 properties
 
-Build project with mvn build
+  *  cdx_server_url: Url to the CDX-server    Example:  http://localhost:8081/index?badLines=skip
+  *  input_file: Full file path the to input file of input WARC-files
+  *  output_file:Full file path to the output file of completed WARC-files. 
+  *  threads: 48  Number or threads. Do not go above 48 threads since the CDX-server must be able to handle the load.
+
+
+Call the start script:
+bin/start-script.sh
+
 
 Implementation details:
 The list of WARC files to process is read from the input file and stored in List<String>.
 The list of WARC files completed is stored in the output file file stored in HashSet<String> so the contains method is fast.
 
-A syncronized method 'getNextWarcFile' will return next file to process when a thread require a new file.
+A synchronized method 'getNextWarcFile' will return next file to process when a thread require a new file.
 If the file is already in the completed set it will just skip returning it and instead try same check for the next file.
 When a WARC file has been completed it will be written to the output file and also add to the memory Set of completed files.
 
@@ -237,10 +244,13 @@ public class CdxIndexerWorkflow {
         private int numberErrors;
         CdxFormat.Builder cdxFormatBuilder;
 
+        /*
+         * This is not a daemon thread. The thread will continue to run while main program is waiting for them to complete before finishing and exit with exitCode=0
+         * 
+         */
         public CdxIndexerWorkerThread(   CdxFormat.Builder cdxFormatBuilder,int threadNumber){
             this.threadNumber=threadNumber;
             this.cdxFormatBuilder = cdxFormatBuilder;
-            this.setDaemon(true); //Required or the stand-alone-template will exit
         }    
 
         public void run() {
@@ -274,7 +284,7 @@ public class CdxIndexerWorkflow {
                       markWarcFileCompleted(nextWarcFile);
                     }
                     catch(Exception exceptionIO) {                        
-                       log.error("Error marking WARC file as completed. Stopping thread. WarcFile:"+nextWarcFile);
+                       log.error("Error marking WARC file as completed. Stopping thread. WarcFile:"+nextWarcFile); // Has not happened yet
                        return;//Stop worker! 
                     }
                 }

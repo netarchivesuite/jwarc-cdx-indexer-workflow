@@ -46,8 +46,7 @@ public class Main implements Callable<Integer>{
             e.printStackTrace();
             return 1; //Error
         }
-              
-        log.info("Job completed");                       
+                                     
         return 0; //Exit code
     }
     
@@ -57,7 +56,15 @@ public class Main implements Callable<Integer>{
         System.out.println("Arguments passed by commandline is: " + Arrays.asList(args));
         CommandLine app = new CommandLine(new Main());
         int exitCode = app.execute(args);
-        SystemControl.exit(exitCode);
+     
+        
+        if (exitCode == 0) { //We can not exit since this will kill threads 
+            log.info("All threads started successfully. See log file for progress");
+            //Will exit with exitCode == 0 when finished
+        }
+        else {
+          SystemControl.exit(exitCode);
+        }
     }
 
     /**

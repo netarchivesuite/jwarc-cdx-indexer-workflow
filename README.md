@@ -3,7 +3,7 @@
 
 Developed and maintained by the Royal Danish Library.
 
-The workflow will use the 3 settings for the CDX-indexer automatic.  (digest-unchanged, post-append, warc-full-path, include-revisits)
+The workflow will use the 4 settings for the CDX-indexer automatic.  (digest-unchanged, post-append, warc-full-path, include-revisits)
 
 The workflow takes 4 arguments
 1) Number of threads

@@ -16,7 +16,7 @@
     <url>https://github.com/netarchivesuite/jwarc-cdx-indexer-workflow</url>
     <connection>scm:git:ssh://git@github.com:netarchivesuite/jwarc-cdx-indexer-workflow.git</connection>
     <developerConnection>scm:git:ssh://git@github.com:netarchivesuite/jwarc-cdx-indexer-workflow.git</developerConnection>
-    <tag>jwarc-cdx-indexer-workflow-1.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <repositories>

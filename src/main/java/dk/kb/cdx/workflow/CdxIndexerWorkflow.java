@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-/* 
+/** 
 The workflow will use the 3 settings for the CDX-indexer automatic.  (digest-unchanged, post-append, warc-full-path, include-revisits)
 
 The workflow takes 4 arguments.
@@ -47,10 +47,8 @@ Configure the yaml property file with the 4 properties
   *  output_file:Full file path to the output file of completed WARC-files. 
   *  threads: 48  Number or threads. Do not go above 48 threads since the CDX-server must be able to handle the load.
 
-
 Call the start script:
 bin/start-script.sh
-
 
 Implementation details:
 The list of WARC files to process is read from the input file and stored in List<String>.
@@ -62,9 +60,12 @@ When a WARC file has been completed it will be written to the output file and al
 
 Since the job will take months to complete, regular check not too many threads has been stopped with:
 less cdx_indexer_workflow.log | grep 'Stopping thread'
+A thread will stop if the response from the CDX-server is not expected.
 So far it has never happened unless when forced by stopping the CDX-server for testing.
+ 
+Expected response from CDX-server: Added 179960 records
+*/
 
- */
 public class CdxIndexerWorkflow {
     private static final Logger log = LoggerFactory.getLogger(CdxIndexerWorkflow.class);
     
@@ -106,7 +107,7 @@ public class CdxIndexerWorkflow {
     }
     
     /**
-     * JWarc will fail runtime with java8. 
+     * JWarc will fail runtime with java8. Is there a better way to detect this?
      * 
      */    
     private static void checkJavaVersion() {
@@ -160,7 +161,7 @@ public class CdxIndexerWorkflow {
            cdxWriter.setPostAppend(true); //very important for PyWb SOME playback
            cdxWriter.setFormat(cdxFormatBuilder.build());
            cdxWriter.writeHeaderLine();
-           cdxWriter.onWarning(log::error);
+           cdxWriter.onWarning(log::error); // Use the current logger
            cdxWriter.process(files, true);
         return stringWriter.toString();               
         }
@@ -173,9 +174,9 @@ public class CdxIndexerWorkflow {
     private static String postCdxToServer(String cdxServer, String data) throws Exception {
         HttpClient client = HttpClient.newBuilder().build();
         HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(cdxServer))
-                .POST(BodyPublishers.ofString(data))
-                .build();
+                              .uri(URI.create(cdxServer))
+                              .POST(BodyPublishers.ofString(data))
+                              .build();
 
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());        
         int status=response.statusCode();
@@ -192,7 +193,6 @@ public class CdxIndexerWorkflow {
             WARCS_COMPLETED.add(warcFile); //Add to completed memory HashSet         
             Path completedPath=  Paths.get(OUTPUT_WARCS_COMPLETED_FILE_LIST);        
             Files.write(completedPath, (warcFile+"\n").getBytes(StandardCharsets.UTF_8),StandardOpenOption.APPEND); //new line after each
-
         }
         catch(Exception e) {
             log.error("Error marking warc file as completed:"+warcFile);

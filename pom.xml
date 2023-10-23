@@ -11,7 +11,7 @@
   <groupId>dk.kb.cdx</groupId>
   <artifactId>jwarc-cdx-indexer-workflow</artifactId>
   <version>1.0</version>
-
+                              
    <scm>
     <url>https://github.com/netarchivesuite/jwarc-cdx-indexer-workflow</url>
     <connection>scm:git:ssh://git@github.com:netarchivesuite/jwarc-cdx-indexer-workflow.git</connection>

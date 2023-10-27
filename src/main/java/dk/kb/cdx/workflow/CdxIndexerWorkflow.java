@@ -188,7 +188,7 @@ public class CdxIndexerWorkflow {
         return body;                 
     }
 
-    private synchronized void markWarcFileCompleted(String warcFile) throws IOException{              
+    private static synchronized void markWarcFileCompleted(String warcFile) throws IOException{              
         try {
             WARCS_COMPLETED.add(warcFile); //Add to completed memory HashSet         
             Path completedPath=  Paths.get(OUTPUT_WARCS_COMPLETED_FILE_LIST);        

@@ -71,7 +71,6 @@ public class CdxIndexerWorkflow {
     
     
     private static int NUMBER_OF_THREADS=6;
-    private static  String CDX_SERVER=null;
     private static  String INPUT_WARCS_FILE_LIST=null;
     private static String OUTPUT_WARCS_COMPLETED_FILE_LIST=null;
     private static List<String> WARCS_TO_INDEX= new ArrayList<String>();
@@ -79,13 +78,12 @@ public class CdxIndexerWorkflow {
 
     public static void startWorkers(String cdxServer, String inputFile, String outoutFile, int numberOfThreads )  throws Exception{ 
         checkJavaVersion();        
-        NUMBER_OF_THREADS =numberOfThreads;
-        CDX_SERVER = cdxServer;                    
+        NUMBER_OF_THREADS =numberOfThreads;                           
         INPUT_WARCS_FILE_LIST = inputFile;        
         OUTPUT_WARCS_COMPLETED_FILE_LIST = outoutFile;                     
         
         try {
-            init();            
+            loadWarcFilesToProcess();            
         }
         catch (Exception e) {            
             log.error("Error starting workers. Could not load list of WARC files or list of completed WARC files. Input file={}, Output file={}",inputFile,outoutFile ); // also log to console
@@ -94,14 +92,14 @@ public class CdxIndexerWorkflow {
             System.exit(1); 
         }
         log.info("Input WARC-file size:"+WARCS_TO_INDEX.size());
-        log.info("Already completed WARC-file size::"+WARCS_COMPLETED.size());
+        log.info("Already completed WARC-file size:"+WARCS_COMPLETED.size());
         log.info("Starting indexing with number of threads:"+NUMBER_OF_THREADS);
 
         CdxFormat.Builder cdxFormatBuilder = createCdxBuilder();
 
         //Start all workers
         for (int threadNumber=0;threadNumber<NUMBER_OF_THREADS;threadNumber++){
-            CdxIndexerWorkerThread  thread =  new CdxIndexerWorkflow().new CdxIndexerWorkerThread(cdxFormatBuilder,threadNumber);
+            CdxIndexWorker  thread =  new CdxIndexWorker(cdxServer, cdxFormatBuilder,threadNumber);
             thread.start();
         }                  
     }
@@ -124,17 +122,17 @@ public class CdxIndexerWorkflow {
      * 
      * @throws Exception If input or output file can not be read
      */
-    private static void init() throws Exception{
+    private static void loadWarcFilesToProcess() throws IOException{
         WARCS_TO_INDEX = readInputWarcList(INPUT_WARCS_FILE_LIST);
         WARCS_COMPLETED = readCompletedWarcs(OUTPUT_WARCS_COMPLETED_FILE_LIST);
     }
 
-    private static synchronized String getNextWarcFile() {
+    public static synchronized String getNextWarcFile() {
 
         //To avoid deep stack trace, using while construction instead of recursive method call
         while (WARCS_TO_INDEX.size() != 0) {
 
-            String next =WARCS_TO_INDEX.remove(0);
+            String next = WARCS_TO_INDEX.remove(0);
 
             //Check it is no already processed. (can happen if run was interrupted and restarted)
             if (WARCS_COMPLETED.contains(next)) {
@@ -153,46 +151,14 @@ public class CdxIndexerWorkflow {
         return null;
     }
 
-
-    private static String getCdxOutput(String warcFile, CdxFormat.Builder cdxFormatBuilder ) throws IOException {
-        List<Path> files = new ArrayList<Path>();
-        files.add( new File(warcFile).toPath());
-        try (StringWriter stringWriter = new StringWriter();CdxWriter cdxWriter = new CdxWriter(stringWriter); ) {           
-           cdxWriter.setPostAppend(true); //very important for PyWb SOME playback
-           cdxWriter.setFormat(cdxFormatBuilder.build());
-           cdxWriter.writeHeaderLine();
-           cdxWriter.onWarning(log::error); // Use the current logger
-           cdxWriter.process(files, true);
-        return stringWriter.toString();               
-        }
-    }
-
-    /*
-     * Return the body message from the CDX server. If everything is well it will be something like: 'Added 80918 records'
-     * Will log error if HTTP status is not 200
-     */
-    private static String postCdxToServer(String cdxServer, String data) throws Exception {
-        HttpClient client = HttpClient.newBuilder().build();
-        HttpRequest request = HttpRequest.newBuilder()
-                              .uri(URI.create(cdxServer))
-                              .POST(BodyPublishers.ofString(data))
-                              .build();
-
-        HttpResponse<String> response = client.send(request, BodyHandlers.ofString());        
-        int status=response.statusCode();
-        String body=response.body().toString();
-        if (status != 200) {            
-            log.error("Unexpected http status:"+status +" with body:"+body);            
-        }
-
-        return body;                 
-    }
-
-    private static synchronized void markWarcFileCompleted(String warcFile) throws IOException{              
+  
+      public static synchronized void markWarcFileCompleted(String warcFile) throws IOException{              
         try {
             WARCS_COMPLETED.add(warcFile); //Add to completed memory HashSet         
-            Path completedPath=  Paths.get(OUTPUT_WARCS_COMPLETED_FILE_LIST);        
-            Files.write(completedPath, (warcFile+"\n").getBytes(StandardCharsets.UTF_8),StandardOpenOption.APPEND); //new line after each
+            Path completedPath=  Paths.get(OUTPUT_WARCS_COMPLETED_FILE_LIST);      
+            
+            //Append to a line to the file. Will create file if it does not exist
+            Files.write(completedPath, (warcFile+"\n").getBytes(StandardCharsets.UTF_8),StandardOpenOption.APPEND,StandardOpenOption.CREATE); 
         }
         catch(Exception e) {
             log.error("Error marking warc file as completed:"+warcFile);
@@ -233,65 +199,11 @@ public class CdxIndexerWorkflow {
 
     private static CdxFormat.Builder createCdxBuilder() {
         CdxFormat.Builder cdxFormatBuilder = new CdxFormat.Builder().        
-                digestUnchanged().                  
+                digestUnchanged().                
                 legend(CdxFormat.CDX11_LEGEND);
+        
         return cdxFormatBuilder;
     }
-
-    public class CdxIndexerWorkerThread extends Thread {
-        private int threadNumber;
-        private int numberProcessed;
-        private int numberErrors;
-        CdxFormat.Builder cdxFormatBuilder;
-
-        /*
-         * This is not a daemon thread. The thread will continue to run while main program is waiting for them to complete before finishing and exit with exitCode=0
-         * 
-         */
-        public CdxIndexerWorkerThread(   CdxFormat.Builder cdxFormatBuilder,int threadNumber){
-            this.threadNumber=threadNumber;
-            this.cdxFormatBuilder = cdxFormatBuilder;
-        }    
-
-        public void run() {
-            log.info("Starting CdxIndexerWorkerThread:"+threadNumber);                        
-
-            String nextWarcFile=getNextWarcFile();
-            while( nextWarcFile != null ){     
-                try{
-                    String cdxOutput=getCdxOutput(nextWarcFile, cdxFormatBuilder); //Exceptions are acceptable, can be corrupt WARC-files.
-                    String responseBody=null;
-                    try {
-                       responseBody=postCdxToServer(CDX_SERVER, cdxOutput); //Critital this does not fail. Stop thread instead of continue with something that can fail again and again
-                    }
-                    catch(Exception e) { //stop thread if CDX server is not running as expected. 
-                        
-                     log.error("Stopping thread:"+threadNumber + " Error connecting to CDX server:"+e.getMessage());  
-                     return;                     
-                    }
-                   if (responseBody != null) {
-                       responseBody= responseBody.trim(); //Remove a new line from the server as last character
-                   }
-                    
-                    numberProcessed++;
-                    log.info("Indexed:"+nextWarcFile +" result:"+responseBody); 
-                    markWarcFileCompleted(nextWarcFile);
-                }
-                catch(Exception e){
-                    numberErrors++;
-                    log.error("Error processing:"+nextWarcFile +": "+e.getMessage());
-                    try {
-                      markWarcFileCompleted(nextWarcFile);
-                    }
-                    catch(Exception exceptionIO) {                        
-                       log.error("Error marking WARC file as completed. Stopping thread. WarcFile:"+nextWarcFile); // Has not happened yet
-                       return;//Stop worker! 
-                    }
-                }
-                nextWarcFile= getNextWarcFile();            
-            }
-            log.info("Worker completed. No more WARC-files to process for CdxIndexerWorkerThread:"+threadNumber + ". Number processed:"+numberProcessed +" Number of errors:"+numberErrors);                        
-        }
-    }
+  
 
 }

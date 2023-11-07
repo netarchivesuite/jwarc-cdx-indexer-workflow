@@ -43,11 +43,11 @@ public class CdxIndexerWorkflowTest {
     //Write a text file where each line is full path to a warc-file that will be processed by the workflow
     @BeforeEach
     void createWarcInputFile()  throws IOException{
-
+System.out.println("BEFORE EACH");
         try {
             String testDataFolder=getTestResourceFolder();
             Path inputFilePath = getWarcFileListPath();            
-            Files.delete(inputFilePath); //Delete if exists        
+            Files.deleteIfExists(inputFilePath); //Delete if exists        
             log.info("Creating input file with warc files to process:"+inputFilePath);
 
             int fileCount=0;
@@ -80,7 +80,7 @@ public class CdxIndexerWorkflowTest {
             int numberOfThreads=2;
 
             CdxIndexerWorkflow.startWorkers(cdxServer, warcFileListPath.toString(), completedFile, numberOfThreads);
-            
+            Thread.sleep(100000L);
         }
         catch(Exception e) {     
             e.printStackTrace();

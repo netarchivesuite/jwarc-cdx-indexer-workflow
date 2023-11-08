@@ -1,22 +1,22 @@
-#
-# This config contains behaviour data: Thread allocation, allowed fields for lookup, limits for arguments etc.
-#
-# The behaviour config is normally controlled by developers and is part of the code repository.
-# Sensitive information such as machine names and user/passwords should not be part of this config but belong
-# in the 'environment' and 'local' configurations
-#
-# It will be automatically merged with the environment config when accessed through the
-# application config system.
+#  YAML config file for the Jwarc-cdx-indexer-workflow. TThis configuration  is used when the workflow is started with the 'start-script.sh'
+#  The workflow can also be started by calling the main method directly (add lib folder to classpath) 
+#  java -Xmx81929m  -cp jwarc-cdx-indexer-workflow-1.0-SNAPSHOT.jar dk.kb.cdx.workflow.CdxIndexerWorkflow server inputfile outputfile true 24 false 
 #
 #
+# Arguments:
+# cdx_server_url: The outback CDX server require the parameter 'badLines=skip' or it will terminate on invalid http headers.
+# input_file: A text file where each line is the full path to a WARC-file 
+# output_file: Completed WARC-files will be written to this file. It will be created if it does not exist. A new workflow will skip files already in the completed list
+# use_absolute_paths: Will store the full path of the WARC-file in the CDX server. This will remove the need for a lookup service in PyWb.
+# threads: Do not increase number of threads over 48 since the Outback CDX server also must be able to handle the load. IO when reading is often the bottleneck here, going over 24 may not help.
+# dry_run: If true no data will be sent to the CDX-server. Use to test the setup before. Remember to delete the output file before starting a real run.
+
 config:
   workflow:
     cdx_server_url: http://localhost:8081/index?badLines=skip
     input_file: /home/summanet/netarkivet.files.20230705
     output_file: /home/summanet/netarkivet.files.20230705.COMPLETED.txt
-    threads: 48
+    use_absolute_paths: true
+    threads: 24
+    dry_run: false
   
-  # The configuration can auto-update at set intervals. See ServiceConfig for details
-  autoupdate:
-    enabled: false
-    intervalms: 60000

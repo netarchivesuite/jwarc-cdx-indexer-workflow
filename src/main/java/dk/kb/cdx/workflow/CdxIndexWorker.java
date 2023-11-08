@@ -28,6 +28,8 @@ public class CdxIndexWorker extends Thread{
     private int threadNumber;
     private int numberProcessed;
     private int numberErrors;
+    private boolean dryRun;
+    private boolean absolutePath=false;
     private  String cdxServerUrl=null;
     CdxFormat.Builder cdxFormatBuilder;
 
@@ -35,10 +37,12 @@ public class CdxIndexWorker extends Thread{
      * This is not a daemon thread. The thread will continue to run while main program is waiting for them to complete before finishing and exit with exitCode=0
      * 
      */
-    public CdxIndexWorker( String cdxServerUrl, CdxFormat.Builder cdxFormatBuilder,int threadNumber){
+    public CdxIndexWorker( String cdxServerUrl, CdxFormat.Builder cdxFormatBuilder, boolean absolutePath, int threadNumber, boolean dryRun){
         this.threadNumber=threadNumber;
         this.cdxFormatBuilder = cdxFormatBuilder;
         this.cdxServerUrl=cdxServerUrl;
+        this.absolutePath=absolutePath;
+        this.dryRun=dryRun;
     }    
     
     
@@ -86,9 +90,13 @@ public class CdxIndexWorker extends Thread{
      * Return the body message from the CDX server. If everything is well it will be something like: 'Added 80918 records'
      * Will log error if HTTP status is not 200
      */
-    private static String postCdxToServer(String cdxServer, String data) throws IOException,InterruptedException {
-     
+    private  String postCdxToServer(String cdxServer, String data) throws IOException,InterruptedException {     
         System.out.println("calling server");
+        if (dryRun) {
+         return "Added 0 records (dry run)";    
+        }
+        
+
         
         HttpClient client = HttpClient.newBuilder().build();
         HttpRequest request = HttpRequest.newBuilder()
@@ -109,7 +117,7 @@ public class CdxIndexWorker extends Thread{
 
     
     
-    private static String getCdxOutput(String warcFile, CdxFormat.Builder cdxFormatBuilder ) throws IOException {
+    private String getCdxOutput(String warcFile, CdxFormat.Builder cdxFormatBuilder ) throws IOException {
         File file=new File(warcFile);
         if(!file.exists()) {
             throw new IOException("WARC file not found:"+warcFile);
@@ -122,7 +130,7 @@ public class CdxIndexWorker extends Thread{
            cdxWriter.setFormat(cdxFormatBuilder.build());
            cdxWriter.writeHeaderLine();
            cdxWriter.onWarning(log::error); // Use the current logger
-           cdxWriter.process(files, true); //True means full WARC-file path will be written.
+           cdxWriter.process(files, absolutePath); 
         return stringWriter.toString();               
         }
     }

@@ -75,18 +75,31 @@ public class CdxIndexerWorkflow {
     private static String OUTPUT_WARCS_COMPLETED_FILE_LIST=null;
     private static List<String> WARCS_TO_INDEX= new ArrayList<String>();
     private static HashSet<String> WARCS_COMPLETED= new HashSet <String>();
-
-    public static void startWorkers(String cdxServer, String inputFile, String outoutFile, int numberOfThreads )  throws Exception{ 
-        checkJavaVersion();        
-        NUMBER_OF_THREADS =numberOfThreads;                           
-        INPUT_WARCS_FILE_LIST = inputFile;        
-        OUTPUT_WARCS_COMPLETED_FILE_LIST = outoutFile;                     
+    private static boolean DRYRUN=false;
+    private static String CDX_SERVER=null;
+    private static boolean ABSOLUTE_PATH=false;
+    
+    //String cdxServer, String inputFile, String outoutFile, int numberOfThreads, boolean dryRun
+    //TODO javadoc
+    public static void main(String... args) throws Exception {
+        checkJavaVersion();
+        CDX_SERVER=args[0];
+        INPUT_WARCS_FILE_LIST=args[1];
+        OUTPUT_WARCS_COMPLETED_FILE_LIST=args[2];
+        ABSOLUTE_PATH=Boolean.parseBoolean(args[3]);
+        NUMBER_OF_THREADS=Integer.parseInt(args[4]);
+        DRYRUN=Boolean.parseBoolean(args[5]);
         
+        startWorkers();                
+    }
+
+    private static void startWorkers()  throws Exception{ 
+                                 
         try {
             loadWarcFilesToProcess();            
         }
         catch (Exception e) {            
-            log.error("Error starting workers. Could not load list of WARC files or list of completed WARC files. Input file={}, Output file={}",inputFile,outoutFile ); // also log to console
+            log.error("Error starting workers. Could not load list of WARC files or list of completed WARC files. Input file={}, Output file={}", INPUT_WARCS_FILE_LIST,OUTPUT_WARCS_COMPLETED_FILE_LIST ); // also log to console
             System.out.println("Error starting workers. Could not load list of WARC files or list of completed WARC files. See log file");
             e.printStackTrace();
             System.exit(1); 
@@ -99,7 +112,7 @@ public class CdxIndexerWorkflow {
 
         //Start all workers
         for (int threadNumber=0;threadNumber<NUMBER_OF_THREADS;threadNumber++){
-            CdxIndexWorker  thread =  new CdxIndexWorker(cdxServer, cdxFormatBuilder,threadNumber);
+            CdxIndexWorker  thread =  new CdxIndexWorker(CDX_SERVER, cdxFormatBuilder,ABSOLUTE_PATH,threadNumber, DRYRUN);
             thread.start();
         }                  
     }

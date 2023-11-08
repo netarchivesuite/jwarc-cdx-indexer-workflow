@@ -205,7 +205,7 @@ public class CdxIndexerWorkflow {
             Path completedPath=  Paths.get(OUTPUT_WARCS_COMPLETED_FILE_LIST);      
 
             //Append to a line to the file. Will create file if it does not exist
-            Files.write(completedPath, (warcFile+"\n").getBytes(StandardCharsets.UTF_8),StandardOpenOption.APPEND,StandardOpenOption.CREATE); 
+            Files.writeString(completedPath, (warcFile+"\n"),StandardOpenOption.APPEND,StandardOpenOption.CREATE); 
         }
         catch(Exception e) {
             log.error("Error marking warc file as completed:"+warcFile);

@@ -14,8 +14,8 @@
 config:
   workflow:
     cdx_server_url: http://localhost:8081/index?badLines=skip
-    input_file: /home/summanet/netarkivet.files.20230705
-    output_file: /home/summanet/netarkivet.files.20230705.COMPLETED.txt
+    input_file: /home/test/warc.files.txt
+    output_file: /home/test/warc.files.COMPLETED.txt
     use_absolute_paths: true
     threads: 24
     dry_run: false

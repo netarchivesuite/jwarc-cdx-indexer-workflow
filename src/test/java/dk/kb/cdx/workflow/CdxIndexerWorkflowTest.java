@@ -77,10 +77,10 @@ public class CdxIndexerWorkflowTest {
             String parentFolder = getFile(WARC_INPUT_FILE).getParent().toString();
             String completedFile = parentFolder + "/warc_file.list.COMPLETED.txt";
             log.info("Completed files will be written to:" + completedFile);
-            String cdxServer = "http://localhost:8080"; // is never called, is mocket
+            String cdxServer = "http://localhost:8081/index?badLines=skip"; //dry run, so it not used
             String absolutePaths = "true";
             String numberOfThreads = "2";
-            String dryRun = "true";
+            String dryRun = "false";
 
             CdxIndexerWorkflow.main(cdxServer, warcFileListPath.toString(), completedFile, absolutePaths, numberOfThreads, dryRun);
             

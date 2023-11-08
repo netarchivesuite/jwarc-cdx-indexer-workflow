@@ -44,8 +44,8 @@ public class CdxIndexWorker implements Callable<WorkerStatus>{
     public WorkerStatus call() {
         log.info("Starting CdxIndexerWorkerThread:"+threadNumber);                        
 
-        String nextWarcFile=CdxIndexerWorkflow.getNextWarcFile();
-        while( nextWarcFile != null ){     
+        String nextWarcFile;
+        while( (nextWarcFile = CdxIndexerWorkflow.getNextWarcFile()) != null ) {    
             try{
                 String cdxOutput=getCdxOutput(nextWarcFile, cdxFormatBuilder); //Exceptions are acceptable, can be corrupt WARC-files.
                 String responseBody=null;
@@ -53,7 +53,7 @@ public class CdxIndexWorker implements Callable<WorkerStatus>{
                    responseBody=postCdxToServer(cdxServerUrl, cdxOutput); //Critital this does not fail. Stop thread instead of continue with something that can fail again and again
                 }
                 catch(Exception e) { //stop thread if CDX server is not running as expected.                         
-                 log.error("Stopping worker:"+threadNumber + " Error connecting to CDX server:"+e.getMessage());  
+                 log.error("Stopping worker:"+threadNumber + " Error connecting to CDX server:"+e.getMessage() + " when process WARC file:"+nextWarcFile);  
                  status.increaseErrors();
                  return status; //Stop worker                     
                 }
@@ -66,7 +66,7 @@ public class CdxIndexWorker implements Callable<WorkerStatus>{
             }
             catch(Exception e){
                 status.increaseErrors();
-                log.error("Error processing WARC-file:"+nextWarcFile +": "+e.getMessage());
+                log.error("Error processing WARC-file:"+nextWarcFile,e);
                 try {
                     CdxIndexerWorkflow.markWarcFileCompleted(nextWarcFile);
                 }
@@ -76,7 +76,7 @@ public class CdxIndexWorker implements Callable<WorkerStatus>{
                    return status; //Stop workflow  
                 }
             }
-            nextWarcFile= CdxIndexerWorkflow.getNextWarcFile();            
+                        
         }
         log.info("Worker completed. No more WARC-files to process for CdxIndexerWorkerThread:"+threadNumber + ". Number processed:"+status.getCompleted() +" Number of errors:"+status.getErrors());                        
         return status;

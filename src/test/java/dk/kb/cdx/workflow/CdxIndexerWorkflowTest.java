@@ -48,8 +48,14 @@ public class CdxIndexerWorkflowTest {
     void createWarcInputFile() throws IOException {
 
         String testDataFolder = getTestResourceFolder();
-        Path inputFilePath = getWarcFileListPath();
-        Files.deleteIfExists(inputFilePath); // Delete if exists
+        Path inputFilePath = getWarcInputFileListPath();
+        Path completedFilePath = getWarcCompletedFileListPath();
+        
+        //Clean up before test
+        Files.deleteIfExists(inputFilePath);
+        Files.deleteIfExists(completedFilePath);
+        
+        
         log.info("Creating input file with warc files to process:" + inputFilePath);
 
         int fileCount = 0;
@@ -65,7 +71,7 @@ public class CdxIndexerWorkflowTest {
     void testWorkflow() {
         try {
             // Create the completed WARC file list in same folder
-            Path warcFileListPath = getWarcFileListPath();
+            Path warcFileListPath = getWarcInputFileListPath();
 
             // Start workflow
             String parentFolder = getFile(WARC_INPUT_FILE).getParent().toString();
@@ -77,13 +83,12 @@ public class CdxIndexerWorkflowTest {
             String dryRun = "true";
 
             CdxIndexerWorkflow.main(cdxServer, warcFileListPath.toString(), completedFile, absolutePaths, numberOfThreads, dryRun);
-
-            Thread.sleep(5000L);
-
+            
             // Check workflow wrote the two warc-files as completed.
             validatecompletedFile();
 
         } catch (Exception e) {
+            e.printStackTrace();
             fail("workflow run failed:"+e.getMessage());
         }
     }
@@ -93,18 +98,25 @@ public class CdxIndexerWorkflowTest {
         assertEquals(WARCS.size(), allLines.size(), "Completed warc files does not have expected number of lines");
         for (String warc : WARCS) {
             String absolutePath = Paths.get(getTestResourceFolder() + "/warcs/" + warc).toString();
-            System.out.println(absolutePath);
             assertTrue(allLines.contains(absolutePath), " Completed list does not include:" + warc);
         }
     }
 
-    private static Path getWarcFileListPath() {
+    private static Path getWarcInputFileListPath() {
         String testDataFolder = getTestResourceFolder();
         Path inputFilePath = Path.of(testDataFolder + "/" + WARC_INPUT_FILE);
         return inputFilePath;
 
     }
 
+    private static Path getWarcCompletedFileListPath() {
+        String testDataFolder = getTestResourceFolder();
+        Path inputFilePath = Path.of(testDataFolder + "/" + WARC_OUTPUT_FILE);
+        return inputFilePath;
+
+    }
+
+    
     private static String getTestResourceFolder() {
         return Resolver.getPathFromClasspath(DUMMY_FILE).toFile().getParent();
 

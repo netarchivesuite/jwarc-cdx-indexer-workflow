@@ -18,6 +18,10 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 
 import org.netpreserve.jwarc.cdx.CdxFormat;
 import org.netpreserve.jwarc.cdx.CdxWriter;
@@ -42,10 +46,10 @@ Some WARC-files will return HTTP error status from the CDX-server, but this is e
 Starting the workflow.
 Configure the yaml property file with the 4 properties
 
-  *  cdx_server_url: Url to the CDX-server    Example:  http://localhost:8081/index?badLines=skip
-  *  input_file: Full file path the to input file of input WARC-files
-  *  output_file:Full file path to the output file of completed WARC-files. 
-  *  threads: 48  Number or threads. Do not go above 48 threads since the CDX-server must be able to handle the load.
+ *  cdx_server_url: Url to the CDX-server    Example:  http://localhost:8081/index?badLines=skip
+ *  input_file: Full file path the to input file of input WARC-files
+ *  output_file:Full file path to the output file of completed WARC-files. 
+ *  threads: 48  Number or threads. Do not go above 48 threads since the CDX-server must be able to handle the load.
 
 Call the start script:
 bin/start-script.sh
@@ -62,14 +66,14 @@ Since the job will take months to complete, regular check not too many threads h
 less cdx_indexer_workflow.log | grep 'Stopping thread'
 A thread will stop if the response from the CDX-server is not expected.
 So far it has never happened unless when forced by stopping the CDX-server for testing.
- 
+
 Expected response from CDX-server: Added 179960 records
-*/
+ */
 
 public class CdxIndexerWorkflow {
     private static final Logger log = LoggerFactory.getLogger(CdxIndexerWorkflow.class);
-    
-    
+
+
     private static int NUMBER_OF_THREADS=6;
     private static  String INPUT_WARCS_FILE_LIST=null;
     private static String OUTPUT_WARCS_COMPLETED_FILE_LIST=null;
@@ -78,7 +82,7 @@ public class CdxIndexerWorkflow {
     private static boolean DRYRUN=false;
     private static String CDX_SERVER=null;
     private static boolean ABSOLUTE_PATH=false;
-    
+
     //String cdxServer, String inputFile, String outoutFile, int numberOfThreads, boolean dryRun
     //TODO javadoc
     public static void main(String... args) throws Exception {
@@ -89,12 +93,14 @@ public class CdxIndexerWorkflow {
         ABSOLUTE_PATH=Boolean.parseBoolean(args[3]);
         NUMBER_OF_THREADS=Integer.parseInt(args[4]);
         DRYRUN=Boolean.parseBoolean(args[5]);
-        
+
         startWorkers();                
     }
 
     private static void startWorkers()  throws Exception{ 
-                                 
+
+        long start=System.currentTimeMillis();
+        
         try {
             loadWarcFilesToProcess();            
         }
@@ -110,11 +116,39 @@ public class CdxIndexerWorkflow {
 
         CdxFormat.Builder cdxFormatBuilder = createCdxBuilder();
 
+
+        ExecutorService executor = Executors.newCachedThreadPool();
+
         //Start all workers
+        ArrayList<CdxIndexWorker> workerList = new ArrayList<CdxIndexWorker>();
         for (int threadNumber=0;threadNumber<NUMBER_OF_THREADS;threadNumber++){
-            CdxIndexWorker  thread =  new CdxIndexWorker(CDX_SERVER, cdxFormatBuilder,ABSOLUTE_PATH,threadNumber, DRYRUN);
-            thread.start();
-        }                  
+            CdxIndexWorker  worker =  new CdxIndexWorker(CDX_SERVER, cdxFormatBuilder,ABSOLUTE_PATH,threadNumber, DRYRUN);
+            workerList.add(worker);
+                                
+        }            
+        List<Future<WorkerStatus>> results = executor.invokeAll(workerList);
+        
+        printWorkflowStatistics(results);
+        log.info("Workflow completed, run time in millis:"+(System.currentTimeMillis()-start));                
+    }
+
+    
+    private static void printWorkflowStatistics( List<Future<WorkerStatus>>  futures) { 
+    try {
+        int totalCompleted=0;
+        int totalErrors=0;
+        for (Future f: futures) {
+            WorkerStatus status = (WorkerStatus) f.get();
+            totalCompleted += status.getCompleted();
+            totalErrors += status.getErrors();            
+        }
+        
+        log.info("Total number of WARC-files processed:"+totalCompleted);
+        log.info("Total number of errors encounted:"+totalErrors);            
+     }
+     catch(Exception e) {
+        log.error("Error logging workflow statistics after run completed"); //Should never happen...
+     }                       
     }
     
     /**
@@ -122,12 +156,12 @@ public class CdxIndexerWorkflow {
      * 
      */    
     private static void checkJavaVersion() {
-      String version = System.getProperty("java.version");
-      if (version.startsWith("8.0") || version.toString().startsWith("1.8")){
-          log.error("Must use java 11 or 17. Runtime version is:"+version);
-          System.out.println("Must use java 11 or 17. Runtime version is:"+version);
-          System.exit(1);    
-      }  
+        String version = System.getProperty("java.version");
+        if (version.startsWith("8.0") || version.toString().startsWith("1.8")){
+            log.error("Must use java 11 or 17. Runtime version is:"+version);
+            System.out.println("Must use java 11 or 17. Runtime version is:"+version);
+            System.exit(1);    
+        }  
     }
 
     /**
@@ -164,12 +198,12 @@ public class CdxIndexerWorkflow {
         return null;
     }
 
-  
-      public static synchronized void markWarcFileCompleted(String warcFile) throws IOException{              
+
+    public static synchronized void markWarcFileCompleted(String warcFile) throws IOException{              
         try {
             WARCS_COMPLETED.add(warcFile); //Add to completed memory HashSet         
             Path completedPath=  Paths.get(OUTPUT_WARCS_COMPLETED_FILE_LIST);      
-            
+
             //Append to a line to the file. Will create file if it does not exist
             Files.write(completedPath, (warcFile+"\n").getBytes(StandardCharsets.UTF_8),StandardOpenOption.APPEND,StandardOpenOption.CREATE); 
         }
@@ -214,9 +248,9 @@ public class CdxIndexerWorkflow {
         CdxFormat.Builder cdxFormatBuilder = new CdxFormat.Builder().        
                 digestUnchanged().                
                 legend(CdxFormat.CDX11_LEGEND);
-        
+
         return cdxFormatBuilder;
     }
-  
+
 
 }

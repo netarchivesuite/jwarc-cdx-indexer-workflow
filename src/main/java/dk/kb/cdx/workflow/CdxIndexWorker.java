@@ -12,31 +12,25 @@ import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 import org.netpreserve.jwarc.cdx.CdxFormat;
 import org.netpreserve.jwarc.cdx.CdxWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-
-
-public class CdxIndexWorker extends Thread{
+public class CdxIndexWorker implements Callable<WorkerStatus>{
     
     private static final Logger log = LoggerFactory.getLogger(CdxIndexWorker.class);
        
     private int threadNumber;
-    private int numberProcessed;
-    private int numberErrors;
     private boolean dryRun;
     private boolean absolutePath=false;
     private  String cdxServerUrl=null;
     CdxFormat.Builder cdxFormatBuilder;
+    private WorkerStatus status= new WorkerStatus();
+    
 
-    /*
-     * This is not a daemon thread. The thread will continue to run while main program is waiting for them to complete before finishing and exit with exitCode=0
-     * 
-     */
     public CdxIndexWorker( String cdxServerUrl, CdxFormat.Builder cdxFormatBuilder, boolean absolutePath, int threadNumber, boolean dryRun){
         this.threadNumber=threadNumber;
         this.cdxFormatBuilder = cdxFormatBuilder;
@@ -47,7 +41,7 @@ public class CdxIndexWorker extends Thread{
     
     
 
-    public void run() {
+    public WorkerStatus call() {
         log.info("Starting CdxIndexerWorkerThread:"+threadNumber);                        
 
         String nextWarcFile=CdxIndexerWorkflow.getNextWarcFile();
@@ -59,31 +53,33 @@ public class CdxIndexWorker extends Thread{
                    responseBody=postCdxToServer(cdxServerUrl, cdxOutput); //Critital this does not fail. Stop thread instead of continue with something that can fail again and again
                 }
                 catch(Exception e) { //stop thread if CDX server is not running as expected.                         
-                 log.error("Stopping thread:"+threadNumber + " Error connecting to CDX server:"+e.getMessage());  
-                 return;                     
+                 log.error("Stopping worker:"+threadNumber + " Error connecting to CDX server:"+e.getMessage());  
+                 status.increaseErrors();
+                 return status; //Stop worker                     
                 }
                if (responseBody != null) {
                    responseBody= responseBody.trim(); //Remove a new line from the server as last character
-               }
-                
-                numberProcessed++;
+               }                
+                status.increaseCompleted();
                 log.info("Indexed:"+nextWarcFile +" result:"+responseBody);                 
                 CdxIndexerWorkflow.markWarcFileCompleted(nextWarcFile);
             }
             catch(Exception e){
-                numberErrors++;
+                status.increaseErrors();
                 log.error("Error processing WARC-file:"+nextWarcFile +": "+e.getMessage());
                 try {
                     CdxIndexerWorkflow.markWarcFileCompleted(nextWarcFile);
                 }
                 catch(Exception eIO) {                        
                    log.error("Error marking WARC file as completed. Stopping thread. WarcFile:"+nextWarcFile,eIO); // Has not happened yet
-                   return;//Stop worker! 
+
+                   return status; //Stop workflow  
                 }
             }
             nextWarcFile= CdxIndexerWorkflow.getNextWarcFile();            
         }
-        log.info("Worker completed. No more WARC-files to process for CdxIndexerWorkerThread:"+threadNumber + ". Number processed:"+numberProcessed +" Number of errors:"+numberErrors);                        
+        log.info("Worker completed. No more WARC-files to process for CdxIndexerWorkerThread:"+threadNumber + ". Number processed:"+status.getCompleted() +" Number of errors:"+status.getErrors());                        
+        return status;
     }
     
     /*
@@ -91,13 +87,11 @@ public class CdxIndexWorker extends Thread{
      * Will log error if HTTP status is not 200
      */
     private  String postCdxToServer(String cdxServer, String data) throws IOException,InterruptedException {     
-        System.out.println("calling server");
+
         if (dryRun) {
          return "Added 0 records (dry run)";    
         }
-        
-
-        
+                
         HttpClient client = HttpClient.newBuilder().build();
         HttpRequest request = HttpRequest.newBuilder()
                               .uri(URI.create(cdxServer))
@@ -115,8 +109,7 @@ public class CdxIndexWorker extends Thread{
         return body;                 
     }
 
-    
-    
+        
     private String getCdxOutput(String warcFile, CdxFormat.Builder cdxFormatBuilder ) throws IOException {
         File file=new File(warcFile);
         if(!file.exists()) {

@@ -6,7 +6,7 @@ import java.util.concurrent.Callable;
 
 import dk.kb.cdx.config.ServiceConfig;
 import dk.kb.cdx.workflow.CdxIndexerWorkflow;
-import dk.kb.cdx.workflow.CdxIndexerWorkflow.CdxIndexerWorkerThread;
+
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +37,8 @@ public class Main implements Callable<Integer>{
      //When debugging from IDEA, add -Ddk.kb.applicationConfig="src/main/conf/cdx-*.yaml" to "VM options"
         ServiceConfig.initialize(System.getProperty("dk.kb.applicationConfig"));
   
-        try {
-        CdxIndexerWorkflow.startWorkers(ServiceConfig.CDX_SERVER_URL, ServiceConfig.WARCS_INPUT_LIST_FILE, ServiceConfig.WARCS_OUTPUT_LIST_FILE, ServiceConfig.THREADS);
+        try {            
+           CdxIndexerWorkflow.main(ServiceConfig.CDX_SERVER_URL, ServiceConfig.WARCS_INPUT_LIST_FILE, ServiceConfig.WARCS_OUTPUT_LIST_FILE, ""+ServiceConfig.THREADS,""+ServiceConfig.DRYRUN);
         }
         catch(Exception e) { //Will only happen if workers can not be started
             log.error("Error starting workers. Job terminated");

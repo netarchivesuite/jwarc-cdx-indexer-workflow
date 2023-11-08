@@ -45,8 +45,8 @@ public class ServiceConfig {
         WARCS_INPUT_LIST_FILE=serviceConfig.getString("config.workflow.input_file");
         WARCS_OUTPUT_LIST_FILE=serviceConfig.getString("config.workflow.output_file");       
         THREADS=serviceConfig.getInteger("config.workflow.threads");
-        DRYRUN=serviceConfig.getBoolean("config.dry_run");
-        USEABSOLUTEPATHS=serviceConfig.getBoolean("use_absolute_paths");
+        DRYRUN=serviceConfig.getBoolean("config.workflow.dry_run");
+        USEABSOLUTEPATHS=serviceConfig.getBoolean("config.workflow.use_absolute_paths");
         log.info("Load serviceconfig with properties:" );
         log.info("Cdx server url:"+ CDX_SERVER_URL );
         log.info("WARC input file list:"+WARCS_INPUT_LIST_FILE );

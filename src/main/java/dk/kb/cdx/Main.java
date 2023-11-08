@@ -38,7 +38,7 @@ public class Main implements Callable<Integer>{
         ServiceConfig.initialize(System.getProperty("dk.kb.applicationConfig"));
   
         try {            
-           CdxIndexerWorkflow.main(ServiceConfig.CDX_SERVER_URL, ServiceConfig.WARCS_INPUT_LIST_FILE, ServiceConfig.WARCS_OUTPUT_LIST_FILE, ""+ServiceConfig.THREADS,""+ServiceConfig.DRYRUN);
+           CdxIndexerWorkflow.main(ServiceConfig.CDX_SERVER_URL, ServiceConfig.WARCS_INPUT_LIST_FILE, ServiceConfig.WARCS_OUTPUT_LIST_FILE, ""+ServiceConfig.USEABSOLUTEPATHS,""+ServiceConfig.THREADS,""+ServiceConfig.DRYRUN);
         }
         catch(Exception e) { //Will only happen if workers can not be started
             log.error("Error starting workers. Job terminated");
@@ -59,7 +59,6 @@ public class Main implements Callable<Integer>{
      
         
         if (exitCode == 0) { //We can not exit since this will kill threads 
-            log.info("All threads started successfully. See log file for progress");
             //Will exit with exitCode == 0 when finished
         }
         else {

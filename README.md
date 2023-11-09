@@ -4,14 +4,14 @@
 Developed and maintained by the Royal Danish Library.
 
 The workflow will use the 4 settings for the CDX-indexer automatic.  (CDX11 format, digest-unchanged, post-append, include-revisits)
-
-
+ 
+ 
 ## Workflow arguments
 The workflow takes 6 arguments
-1) Number of threads
-2) URL to CDX-server
-3) Text file will list of WARC-files to index. (Full filepath, one WARC file on each line)
-4) Text file to output completed WARC-files. File will be created if it does not exist
+1) URL to CDX-server
+2) Text file will list of WARC-files to index. (Full filepath, one WARC file on each line)
+3) Text file to output completed WARC-files. File will be created if it does not exist
+4) Absolute path for WARC-files in CDX-server
 5) Number of threads to use for the workflow.
 6) Dry run. If try will not post CDX-data to CDX-server. Use for test mode
 
@@ -22,15 +22,14 @@ Some WARC-files will return HTTP error status from the CDX-server, but this is e
 
 
 ## Starting the workflow.
-Configure the yaml property file with the 4 properties
+Configure the yaml property file with the 6 properties
  Arguments:
  * cdx_server_url: The outback CDX server require the parameter 'badLines=skip' or it will terminate on invalid http headers.
  * input_file: A text file where each line is the full path to a WARC-file 
-* output_file: Completed WARC-files will be written to this file. It will be created if it does not exist. A new workflow will skip files already in the completed list
+ * output_file: Completed WARC-files will be written to this file. It will be created if it does not exist. A new workflow will skip files already in the completed list
  * use_absolute_paths: Will store the full path of the WARC-file in the CDX server. This will remove the need for a lookup service in PyWb.
  * threads: Do not increase number of threads over 48 since the Outback CDX server also must be able to handle the load. IO when reading is often the * bottleneck here, going over 24 may not help.
  * dry_run: If true no data will be sent to the CDX-server. Use to test the setup before. Remember to delete the output file before starting a real run.
-
 
 
 ## Call the start script:
@@ -39,7 +38,7 @@ bin/start-script.sh
 
 ## Create a input file with WARC files to process
 To include all files recursive under a folder with absolute path '/home/user/warcs' use: 
-* find /warcs -type f > warc.files.txt
+* find /home/user/warcs -type f > warc.files.txt
 
 
 ## Implementation details:

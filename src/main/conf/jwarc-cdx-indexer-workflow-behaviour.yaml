@@ -18,5 +18,4 @@ config:
     output_file: /home/test/warc.files.COMPLETED.txt
     use_absolute_paths: true
     threads: 24
-    dry_run: false
-  
+    dry_run: false        

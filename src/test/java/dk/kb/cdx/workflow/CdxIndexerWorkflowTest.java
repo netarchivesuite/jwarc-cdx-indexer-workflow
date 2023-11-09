@@ -80,7 +80,7 @@ public class CdxIndexerWorkflowTest {
             String cdxServer = "http://localhost:8081/index?badLines=skip"; //dry run, so it not used
             String absolutePaths = "true";
             String numberOfThreads = "2";
-            String dryRun = "false";
+            String dryRun = "true";
 
             CdxIndexerWorkflow.main(cdxServer, warcFileListPath.toString(), completedFile, absolutePaths, numberOfThreads, dryRun);
             

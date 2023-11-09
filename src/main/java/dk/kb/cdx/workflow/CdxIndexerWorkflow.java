@@ -2,15 +2,7 @@ package dk.kb.cdx.workflow;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.StringWriter;
-import java.net.URI;
 
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.BodyPublishers;
-import java.net.http.HttpResponse;
-import java.net.http.HttpResponse.BodyHandlers;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -21,58 +13,60 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 
 import org.netpreserve.jwarc.cdx.CdxFormat;
-import org.netpreserve.jwarc.cdx.CdxWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-/** 
-The workflow will use the 3 settings for the CDX-indexer automatic.  (digest-unchanged, post-append, warc-full-path, include-revisits)
+/**  
+* <p>
+* The workflow will use the 3 settings for the CDX-indexer automatic.  (digest-unchanged, post-append, warc-full-path, include-revisits)
+* <p>
+* The workflow takes 6 arguments.
+* <ul>
+* <li> Number of threads </li>
+* <li>  URL to CDX-server </li>
+* <li> Text file will list of WARC-files to index. (Full filepath, one WARC file on each line) </li>
+* <li> Text file to output completed WARC-files. File will be created if it does not exist </li>
+* <li> Number of threads to use for the workflow. </li>
+* <li> Dry run. If try will not post CDX-data to CDX-server. Use for test mode </li>
+* </ul>
+* <p>
+* If the indexing workflow is interrupted and stopped, it can just be restarted with the same input WARC-file. It will skip all WARC-files that are listed in the output completed file.
+* If the CDX server does not return a http status. (no connection, server dead etc), then the thread will terminate and log this event. This is to avoid 'processing' and mark then completed when they will fail. 
+* Some WARC-files will return HTTP error status from the CDX-server, but this is expected and due to corrupt WARC-files. This is mostly old ARC files with http-header errors.
+*
+* <p>
+* Starting the workflow.
+* Configure the yaml property file with the 6 properties
+* 
+* <p>*
+* Call the start script:
+* bin/start-script.sh
+*
+* <p>
+* Implementation details:
+* The list of WARC files to process is read from the input file and stored in List<String>.
+* The list of WARC files completed is stored in the output file file stored in HashSet<String> so the contains method is fast.
+*
+* <p>
+* A synchronized method 'getNextWarcFile' will return next file to process when a thread require a new file.
+* If the file is already in the completed set it will just skip returning it and instead try same check for the next file.
+* When a WARC file has been completed it will be written to the output file and also add to the memory Set of completed files.
+* <p>
+* Since the job will take months to complete, regular check not too many threads has been stopped with:
+* less cdx_indexer_workflow.log | grep 'Stopping thread'
+* A thread will stop if the response from the CDX-server is not expected.
+* So far it has never happened unless when forced by stopping the CDX-server for testing.
+* <p>
+* Expected response from CDX-server: Added 179960 records
+*/
 
-The workflow takes 4 arguments.
-1) Number of threads
-2) URL to CDX-server
-3) Text file will list of WARC-files to index. (Full filepath, one WARC file on each line)
-4) Text file to output completed WARC-files.
-
-If the indexing workflow is interrupted and stopped, it can just be restarted with the same input WARC-file. It will skip all WARC-files that are listed in the output completed file.
-If the CDX server does not return a http status. (no connection, server dead etc), then the thread will terminate and log this event. This is to avoid 'processing' and mark then completed when they will fail. 
-Some WARC-files will return HTTP error status from the CDX-server, but this is expected and due to corrupt WARC-files. This is mostly old ARC files with http-header errors.
-
-
-Starting the workflow.
-Configure the yaml property file with the 4 properties
-
- *  cdx_server_url: Url to the CDX-server    Example:  http://localhost:8081/index?badLines=skip
- *  input_file: Full file path the to input file of input WARC-files
- *  output_file:Full file path to the output file of completed WARC-files. 
- *  threads: 48  Number or threads. Do not go above 48 threads since the CDX-server must be able to handle the load.
-
-Call the start script:
-bin/start-script.sh
-
-Implementation details:
-The list of WARC files to process is read from the input file and stored in List<String>.
-The list of WARC files completed is stored in the output file file stored in HashSet<String> so the contains method is fast.
-
-A synchronized method 'getNextWarcFile' will return next file to process when a thread require a new file.
-If the file is already in the completed set it will just skip returning it and instead try same check for the next file.
-When a WARC file has been completed it will be written to the output file and also add to the memory Set of completed files.
-
-Since the job will take months to complete, regular check not too many threads has been stopped with:
-less cdx_indexer_workflow.log | grep 'Stopping thread'
-A thread will stop if the response from the CDX-server is not expected.
-So far it has never happened unless when forced by stopping the CDX-server for testing.
-
-Expected response from CDX-server: Added 179960 records
- */
 
 public class CdxIndexerWorkflow {
     private static final Logger log = LoggerFactory.getLogger(CdxIndexerWorkflow.class);
-
+    public static final String DRYRUN_SUFFIX=".dryrun.txt";
 
     private static int NUMBER_OF_THREADS=6;
     private static  String INPUT_WARCS_FILE_LIST=null;
@@ -94,6 +88,11 @@ public class CdxIndexerWorkflow {
         NUMBER_OF_THREADS=Integer.parseInt(args[4]);
         DRYRUN=Boolean.parseBoolean(args[5]);
 
+        if (DRYRUN) {
+            OUTPUT_WARCS_COMPLETED_FILE_LIST += DRYRUN_SUFFIX;
+            log.info("For dryrun outout file name has been changed to:"+OUTPUT_WARCS_COMPLETED_FILE_LIST);
+        }
+        
         startWorkers();                
     }
 

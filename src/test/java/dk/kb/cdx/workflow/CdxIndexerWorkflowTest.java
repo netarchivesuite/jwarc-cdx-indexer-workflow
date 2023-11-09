@@ -75,7 +75,7 @@ public class CdxIndexerWorkflowTest {
 
             // Start workflow
             String parentFolder = getFile(WARC_INPUT_FILE).getParent().toString();
-            String completedFile = parentFolder + "/warc_file.list.COMPLETED.txt";
+            String completedFile = parentFolder + "/warc_file.list.COMPLETED.txt"; //Dryrun will append .dryrun.txt to filename
             log.info("Completed files will be written to:" + completedFile);
             String cdxServer = "http://localhost:8081/index?badLines=skip"; //dry run, so it not used
             String absolutePaths = "true";
@@ -94,7 +94,7 @@ public class CdxIndexerWorkflowTest {
     }
 
     private void validatecompletedFile() throws IOException {
-        List<String> allLines = Files.readAllLines(Paths.get(getTestResourceFolder() + "/" + WARC_OUTPUT_FILE));
+        List<String> allLines = Files.readAllLines(Paths.get(getTestResourceFolder() + "/" + WARC_OUTPUT_FILE +CdxIndexerWorkflow.DRYRUN_SUFFIX));
         assertEquals(WARCS.size(), allLines.size(), "Completed warc files does not have expected number of lines");
         for (String warc : WARCS) {
             String absolutePath = Paths.get(getTestResourceFolder() + "/warcs/" + warc).toString();

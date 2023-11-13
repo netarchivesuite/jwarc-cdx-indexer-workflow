@@ -76,9 +76,24 @@ public class CdxIndexerWorkflow {
     private static boolean DRYRUN=false;
     private static String CDX_SERVER=null;
     private static boolean ABSOLUTE_PATH=false;
-
+    private static String IGNORE_PATTERN=null;
+    
     //String cdxServer, String inputFile, String outoutFile, int numberOfThreads, boolean dryRun
-    //TODO javadoc
+    
+    /**
+     *  Start the workflow with the given parameters. See below. Method will return will all workers have completed.
+     *  See the project README for more details about the parameters.
+     *   
+     *  <ul>
+     *  <li> URL to CDX-server
+     *  <li> Text file will list of WARC-files to index. (Full filepath, one WARC file on each line)
+     *  <li> Text file to output completed WARC-files. File will be created if it does not exist
+     *  <li> Absolute path for WARC-files in CDX-server
+     *  <li> Number of threads to use for the workflow. 
+     *  <li> Skip indexing of WARC-files that contains this partial substring
+     *  <li> Dry run. If try will not post CDX-data to CDX-server. Use for test mode
+     *  </ul>
+     */    
     public static void main(String... args) throws Exception {
         checkJavaVersion();
         CDX_SERVER=args[0];
@@ -86,7 +101,8 @@ public class CdxIndexerWorkflow {
         OUTPUT_WARCS_COMPLETED_FILE_LIST=args[2];
         ABSOLUTE_PATH=Boolean.parseBoolean(args[3]);
         NUMBER_OF_THREADS=Integer.parseInt(args[4]);
-        DRYRUN=Boolean.parseBoolean(args[5]);
+        IGNORE_PATTERN=args[5];
+        DRYRUN=Boolean.parseBoolean(args[6]);        
 
         if (DRYRUN) {
             OUTPUT_WARCS_COMPLETED_FILE_LIST += DRYRUN_SUFFIX;
@@ -186,14 +202,15 @@ public class CdxIndexerWorkflow {
                 continue;
             }
 
-            //Skip metadata. This is some custom Netarchive Suite/Heritrix information that does not belong in CDX-indexer
-            if (next.contains("metadata")) {
+          // Skip some WARC files. Netarchive Suite/Heritrix produce metadata files that should not be indexex.
+          if (IGNORE_PATTERN != null && IGNORE_PATTERN.length()>0) {            
+            if (next.contains(IGNORE_PATTERN)) {
                 log.debug("Skipping metadata file:"+next);
                 continue;
             }
             return next;
+          }
         }
-
         return null;
     }
 

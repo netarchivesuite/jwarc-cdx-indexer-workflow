@@ -10,12 +10,13 @@
 # use_absolute_paths: Will store the full path of the WARC-file in the CDX server. This will remove the need for a lookup service in PyWb.
 # threads: Do not increase number of threads over 48 since the Outback CDX server also must be able to handle the load. IO when reading is often the bottleneck here, going over 24 may not help.
 # dry_run: If true no data will be sent to the CDX-server. Use to test the setup before. Remember to delete the output file before starting a real run.
-
+# ignore_pattern: Will skip WARC-files that contains this partial pattern. For Heritix crawls it is practice to generate some metadata files as well about the harvest. Leave blank to accept all warc file names.  
 config:
   workflow:
     cdx_server_url: http://localhost:8081/index?badLines=skip
     input_file: /home/test/warc.files.txt
     output_file: /home/test/warc.files.COMPLETED.txt
     use_absolute_paths: true
-    threads: 24
-    dry_run: false        
+    threads: 24    
+    dry_run: false
+    ignore_pattern: metadata        

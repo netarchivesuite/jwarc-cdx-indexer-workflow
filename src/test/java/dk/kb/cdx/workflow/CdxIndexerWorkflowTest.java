@@ -81,8 +81,9 @@ public class CdxIndexerWorkflowTest {
             String absolutePaths = "true";
             String numberOfThreads = "2";
             String dryRun = "true";
-
-            CdxIndexerWorkflow.main(cdxServer, warcFileListPath.toString(), completedFile, absolutePaths, numberOfThreads, dryRun);
+            String ignorePattern = "metadata";
+            
+            CdxIndexerWorkflow.main(cdxServer, warcFileListPath.toString(), completedFile, absolutePaths, numberOfThreads,ignorePattern,dryRun);
             
             // Check workflow wrote the two warc-files as completed.
             validatecompletedFile();

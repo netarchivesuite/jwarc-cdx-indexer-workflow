@@ -14,16 +14,10 @@ public class ServiceConfig {
     public static int THREADS=1;
     public static String CDX_SERVER_URL=null;
     public static String WARCS_INPUT_LIST_FILE=null;
-    public static String WARCS_OUTPUT_LIST_FILE=null;
+    public static String WARCS_OUTPUT_LIST_FILE=null;    
     public static boolean USEABSOLUTEPATHS = false;
+    public static String IGNORE_PATTERN=null;
     public static boolean DRYRUN=false;
-    
-    /*
-    cdx_server_url: http://localhost:8081/index?badLines=skip
-        input_file: /netarkiv-cdx/netarkivet.files.20230705
-        output_file:  /netarkiv-cdx/netarkivet.files.20230705.COMPLETED.txt
-        threads: 24
-    */
     
     /**
      * Besides parsing of YAML files using SnakeYAML, the YAML helper class provides convenience
@@ -47,12 +41,15 @@ public class ServiceConfig {
         THREADS=serviceConfig.getInteger("config.workflow.threads");
         DRYRUN=serviceConfig.getBoolean("config.workflow.dry_run");
         USEABSOLUTEPATHS=serviceConfig.getBoolean("config.workflow.use_absolute_paths");
+        IGNORE_PATTERN=serviceConfig.getString("config.workflow.ignore_pattern");
+        
         log.info("Load serviceconfig with properties:" );
         log.info("Cdx server url:"+ CDX_SERVER_URL );
         log.info("WARC input file list:"+WARCS_INPUT_LIST_FILE );
         log.info("WARC output file list:"+WARCS_OUTPUT_LIST_FILE );
         log.info("Use absolute paths:"+USEABSOLUTEPATHS );
         log.info("Number of workers:"+THREADS);
+        log.info("Ignore pattern:"+IGNORE_PATTERN);
         log.info("Dryrun:"+DRYRUN);
     }
 

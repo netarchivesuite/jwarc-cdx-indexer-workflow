@@ -30,7 +30,11 @@ public class CdxIndexWorker implements Callable<WorkerStatus>{
     CdxFormat.Builder cdxFormatBuilder;
     private WorkerStatus status= new WorkerStatus();
     
-
+    /**
+     *  Start a worker. Worker will query CdxIndexerWorkflow.getNextWarcFile() for new WARC file to process and process them one a time.
+     *  It will terminate when there are no further WARC files. (null will be returned from getNextWarcFile method) 
+     * 
+     */
     public CdxIndexWorker( String cdxServerUrl, CdxFormat.Builder cdxFormatBuilder, boolean absolutePath, int threadNumber, boolean dryRun){
         this.threadNumber=threadNumber;
         this.cdxFormatBuilder = cdxFormatBuilder;
@@ -40,7 +44,7 @@ public class CdxIndexWorker implements Callable<WorkerStatus>{
     }    
     
     
-
+    @Override
     public WorkerStatus call() {
         log.info("Starting CdxIndexerWorkerThread:"+threadNumber);                        
 

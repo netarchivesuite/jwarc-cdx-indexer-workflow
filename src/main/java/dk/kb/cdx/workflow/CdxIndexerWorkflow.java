@@ -146,7 +146,7 @@ public class CdxIndexerWorkflow {
         log.info("Total number of errors encounted:"+totalErrors);           
      }
      catch(Exception e) {
-        log.error("Error logging workflow statistics after run completed"); //Should never happen...
+        log.error("Error logging workflow statistics after run completed",e); //Should never happen...
      }                       
     }
     

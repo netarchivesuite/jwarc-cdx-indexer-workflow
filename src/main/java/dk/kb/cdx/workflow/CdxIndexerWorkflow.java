@@ -48,7 +48,7 @@ import org.slf4j.LoggerFactory;
 * <p>
 * Implementation details:
 * The list of WARC files to process is read from the input file and stored in List<String>.
-* The list of WARC files completed is stored in the output file file stored in HashSet<String> so the contains method is fast.
+* The list of WARC files completed is stored in the output file file stored in HashSet<String> so the contains() method is fast.
 *
 * <p>
 * A synchronized method 'getNextWarcFile' will return next file to process when a thread require a new file.
@@ -136,14 +136,14 @@ public class CdxIndexerWorkflow {
     try {
         int totalCompleted=0;
         int totalErrors=0;
-        for (Future f: futures) {
-            WorkerStatus status = (WorkerStatus) f.get();
+        for (Future<WorkerStatus> f: futures) {
+            WorkerStatus status = f.get();
             totalCompleted += status.getCompleted();
             totalErrors += status.getErrors();            
         }
         
         log.info("Total number of WARC-files processed:"+totalCompleted);
-        log.info("Total number of errors encounted:"+totalErrors);            
+        log.info("Total number of errors encounted:"+totalErrors);           
      }
      catch(Exception e) {
         log.error("Error logging workflow statistics after run completed"); //Should never happen...

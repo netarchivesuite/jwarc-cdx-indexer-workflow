@@ -82,7 +82,7 @@ public class CdxIndexWorker implements Callable<WorkerStatus>{
         return status;
     }
     
-    /*
+    /**
      * Return the body message from the CDX server. If everything is well it will be something like: 'Added 80918 records'
      * Will log error if HTTP status is not 200
      */

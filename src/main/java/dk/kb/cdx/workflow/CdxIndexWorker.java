@@ -89,7 +89,8 @@ public class CdxIndexWorker implements Callable<WorkerStatus>{
     private  String postCdxToServer(String cdxServer, String data) throws IOException,InterruptedException {     
 
         if (dryRun) {
-         return "Added 0 records (dry run)";    
+           int lines=data.split("\n").length -1; //substract header        	       
+           return "Added "+lines+" records (dry run)";    
         }
                 
         HttpClient client = HttpClient.newBuilder().build();

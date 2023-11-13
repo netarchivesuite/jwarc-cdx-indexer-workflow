@@ -41,11 +41,9 @@ public class CdxIndexerWorkflowTest {
     public static String WARC_OUTPUT_FILE = "warc_file.list.COMPLETED.txt";
 
     public static List<String> WARCS = new ArrayList<>(Arrays.asList("IAH-20080430204825-00000-blackbook.arc", "IAH-20080430204825-00000-blackbook.warc.gz"));
+    public static List<String> WARCS_WITH_NONEXISTING = new ArrayList<>(Arrays.asList("IAH-20080430204825-00000-blackbook.arc", "IAH-20080430204825-00000-blackbook.warc.gz", "not_found.warc.gx"));
 
-    // Write a text file where each line is full path to a warc-file that will be
-    // processed by the workflow
-    @BeforeEach
-    void createWarcInputFile() throws IOException {
+    private static void createWarcInputFile( List<String> files) throws IOException {
 
         String testDataFolder = getTestResourceFolder();
         Path inputFilePath = getWarcInputFileListPath();
@@ -59,7 +57,7 @@ public class CdxIndexerWorkflowTest {
         log.info("Creating input file with warc files to process:" + inputFilePath);
 
         int fileCount = 0;
-        for (String warc : WARCS) {
+        for (String warc : files) {
             String fullPath = testDataFolder + "/warcs/" + warc;
             Files.write(inputFilePath, (fullPath + "\n").getBytes(StandardCharsets.UTF_8), StandardOpenOption.APPEND, StandardOpenOption.CREATE); // new line after each
             fileCount++;
@@ -68,9 +66,11 @@ public class CdxIndexerWorkflowTest {
     }
 
     @Test
-    void testWorkflow() {
-        try {
-            // Create the completed WARC file list in same folder
+    void testWorkflowWithTwoWarcFiles() {
+        try {       
+        	createWarcInputFile(WARCS); //Two files that exist        	
+        	
+        	// Create the completed WARC file list in same folder
             Path warcFileListPath = getWarcInputFileListPath();
 
             // Start workflow
@@ -86,7 +86,7 @@ public class CdxIndexerWorkflowTest {
             CdxIndexerWorkflow.main(cdxServer, warcFileListPath.toString(), completedFile, absolutePaths, numberOfThreads,ignorePattern,dryRun);
             
             // Check workflow wrote the two warc-files as completed.
-            validatecompletedFile();
+            validatecompletedFile(WARCS); //both must be here
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,10 +94,43 @@ public class CdxIndexerWorkflowTest {
         }
     }
 
-    private void validatecompletedFile() throws IOException {
+    @Test
+    void testWorkflowWithNonExistingWarcFile() {
+        try {       
+        	createWarcInputFile(WARCS_WITH_NONEXISTING); //Two files that exist and one that does not exis        	
+        	
+        	// Create the completed WARC file list in same folder
+            Path warcFileListPath = getWarcInputFileListPath();
+
+            // Start workflow
+            String parentFolder = getFile(WARC_INPUT_FILE).getParent().toString();
+            String completedFile = parentFolder + "/warc_file.list.COMPLETED.txt"; //Dryrun will append .dryrun.txt to filename
+            log.info("Completed files will be written to:" + completedFile);
+            String cdxServer = "http://localhost:8081/index?badLines=skip"; //dry run, so it not used
+            String absolutePaths = "true";
+            String numberOfThreads = "2";
+            String dryRun = "true";
+            String ignorePattern = "metadata";
+            
+            CdxIndexerWorkflow.main(cdxServer, warcFileListPath.toString(), completedFile, absolutePaths, numberOfThreads,ignorePattern,dryRun);
+            
+            // Check workflow wrote the two warc-files as completed.
+            //TODO maybe write another file with FAILED instead of completed. This can happen with critical parse error or file not found
+            validatecompletedFile(WARCS_WITH_NONEXISTING); //this non existing file should also be marked as completed 
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("workflow run failed:"+e.getMessage());
+        }
+    }
+
+    
+    
+    private void validatecompletedFile( List<String> expectedFiles) throws IOException {
         List<String> allLines = Files.readAllLines(Paths.get(getTestResourceFolder() + "/" + WARC_OUTPUT_FILE +CdxIndexerWorkflow.DRYRUN_SUFFIX));
-        assertEquals(WARCS.size(), allLines.size(), "Completed warc files does not have expected number of lines");
-        for (String warc : WARCS) {
+        assertEquals(expectedFiles.size(), allLines.size(), "Completed warc files does not have expected number of lines");
+    
+        for (String warc : expectedFiles) {
             String absolutePath = Paths.get(getTestResourceFolder() + "/warcs/" + warc).toString();
             assertTrue(allLines.contains(absolutePath), " Completed list does not include:" + warc);
         }

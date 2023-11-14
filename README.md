@@ -75,13 +75,8 @@ Expected response from CDX-server: Added 179960 records
 * Maven 3                                  
 * Java 11/17
 
-## Setup
 
- * Outback CDX server installed and running. See https://github.com/nla/outbackcdx
- * Optional PyWB to see the playback. (Require Python virtual enviroment). 
-
-
-## Build & run
+## Build & run for developers
 
 Build with standard
 ```

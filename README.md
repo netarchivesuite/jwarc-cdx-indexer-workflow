@@ -1,5 +1,5 @@
 # jwarc-cdx-indexer-workflow
-´
+
 Developed and maintained by the Royal Danish Library.
 
 

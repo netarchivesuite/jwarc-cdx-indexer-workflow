@@ -57,6 +57,8 @@ So far it has never happened unless when forced by stopping the CDX-server for t
  
 Expected response from CDX-server: Added 179960 records
 
+## Benchmarks
+6M WARC-files (1.3PB) can be processed in 60 days using 48 threads if IO is not the bottleneck. Do not go above 20 threads unless you have a high performance SAN.
 
 ## Requirements
 

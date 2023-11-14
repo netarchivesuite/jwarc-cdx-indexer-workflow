@@ -32,7 +32,7 @@ Some WARC-files will return HTTP error status from the CDX-server, but this is e
 
 
 ## Starting the workflow.
-Configure the yaml property file with the 6 properties
+Configure the yaml property file with the 7 properties
  Arguments:
  * cdx_server_url: The outback CDX server require the parameter 'badLines=skip' or it will terminate on invalid http headers.
  * input_file: A text file where each line is the full path to a WARC-file 

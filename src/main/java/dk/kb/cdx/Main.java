@@ -26,7 +26,7 @@ public class Main {
         ServiceConfig.initialize(System.getProperty("dk.kb.applicationConfig"));
   
         try {            
-           CdxIndexerWorkflow.main(ServiceConfig.CDX_SERVER_URL, ServiceConfig.WARCS_INPUT_LIST_FILE, ServiceConfig.WARCS_OUTPUT_LIST_FILE, ""+ServiceConfig.USEABSOLUTEPATHS,""+ServiceConfig.THREADS,""+ServiceConfig.DRYRUN);
+           CdxIndexerWorkflow.main(ServiceConfig.CDX_SERVER_URL, ServiceConfig.WARCS_INPUT_LIST_FILE, ServiceConfig.WARCS_OUTPUT_LIST_FILE, ""+ServiceConfig.USEABSOLUTEPATHS,""+ServiceConfig.THREADS, ServiceConfig.IGNORE_PATTERN,""+ServiceConfig.DRYRUN);
         } catch(Exception e) { //Will only happen if workers can not be started
             log.error("Error starting workers. Job terminated");
             System.err.println("Error starting workers. Job terminated"); 

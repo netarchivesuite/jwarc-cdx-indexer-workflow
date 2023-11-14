@@ -42,6 +42,7 @@ Configure the yaml property file with the 6 properties
  * ignore_pattern. Ignore WARC files that contains this substring. Netarchive Suite/Heritrix produces metadata files etc. Leave empty and all WARCs fill be processed.
  * dry_run: If true no data will be sent to the CDX-server. Use to test the setup before. Remember to delete the output file before starting a real run. For dry run the output file will have additional  '.dryrun.txt' appended to the output file.
 
+The log file be under '/home/user/logs' . This can be configured in jwarc-cdx-indexer-workflow-logback.xml
 
 ## Call the start script:
 bin/start-script.sh

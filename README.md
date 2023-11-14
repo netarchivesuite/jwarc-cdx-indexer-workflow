@@ -1,10 +1,20 @@
 # jwarc-cdx-indexer-workflow
-
-
+´
 Developed and maintained by the Royal Danish Library.
 
-The workflow will use the 4 settings for the CDX-indexer automatic.  (CDX11 format, digest-unchanged, post-append, include-revisits)
+
+## About
+The jwarc-cdx-indexer-workflow is a workflow to start a large scale CDX-indexing of WARC-files. 
  
+## Requirements
+Linux OS
+CDX-server. OutBackCDX is  recommended for large scale usage: https://github.com/nla/outbackcdx
+PyWb for playback: https://pywb.readthedocs.io/en/latest/
+ 
+ 
+## Releases
+Version-1.0 has been released. Download from: https://github.com/netarchivesuite/jwarc-cdx-indexer-workflow/releases/tag/v1.0
+  
  
 ## Workflow arguments
 The workflow takes 6 arguments
@@ -14,7 +24,7 @@ The workflow takes 6 arguments
 4) Absolute path for WARC-files in CDX-server
 5) Number of threads to use for the workflow.
 6) Dry run. If try will not post CDX-data to CDX-server. Use for test mode
-
+7) Ignore pattern. Skip WARC-files that contains this partial names. Etc. 'metadata' which is used by Netarchivesuite/Heritrix.
 
 If the indexing workflow is interrupted and stopped, it can just be restarted with the same input WARC-file. It will skip all WARC-files that are listed in the output completed file.
 If the CDX server does not return a http status. (no connection, server dead etc), then the thread will terminate and log this event. This is to avoid 'processing' and mark then completed when they will fail. 
@@ -60,7 +70,7 @@ Expected response from CDX-server: Added 179960 records
 ## Benchmarks
 6M WARC-files (1.3PB) can be processed in 60 days using 48 threads if IO is not the bottleneck. Do not go above 20 threads unless you have a high performance SAN.
 
-## Requirements
+## Requirements for development
 
 * Maven 3                                  
 * Java 11/17

@@ -29,6 +29,7 @@ Configure the yaml property file with the 6 properties
  * output_file: Completed WARC-files will be written to this file. It will be created if it does not exist. A new workflow will skip files already in the completed list
  * use_absolute_paths: Will store the full path of the WARC-file in the CDX server. This will remove the need for a lookup service in PyWb.
  * threads: Do not increase number of threads over 48 since the Outback CDX server also must be able to handle the load. IO when reading is often the * bottleneck here, going over 24 may not help.
+ * ignore_pattern. Ignore WARC files that contains this substring. Netarchive Suite/Heritrix produces metadata files etc. Leave empty and all WARCs fill be processed.
  * dry_run: If true no data will be sent to the CDX-server. Use to test the setup before. Remember to delete the output file before starting a real run. For dry run the output file will have additional  '.dryrun.txt' appended to the output file.
 
 

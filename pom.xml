@@ -110,7 +110,10 @@
           <tarLongFileMode>posix</tarLongFileMode>
           <descriptors>
             <descriptor>src/main/assembly/assembly.xml</descriptor>
-          </descriptors>
+          </descriptors>          
+       <descriptorRefs>
+          <descriptorRef>jar-with-dependencies</descriptorRef>
+        </descriptorRefs>      
         </configuration>
         <executions>
           <execution>

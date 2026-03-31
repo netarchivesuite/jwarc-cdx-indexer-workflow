@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # The CDX-workflow java repository is found here: https://github.com/netarchivesuite/jwarc-cdx-indexer-workflow/tree/main/src/main/java/dk/kb/cdx/workflow
-# The latest version has been refactored and package for main and arguments not currently matching this jwarc_workflow.jar. The project is now a standalone jar with dependencies.
 
 # The script will find files in /netarkive mount that are 2 days old not counting today and will write them to a text file. ie: 026-03-27_2026-03-29.txt
 # The java workflow is then given the input-file and other parameters such as URL to the CDX-server.  For each warc-fil in the list, the workflow will index it into OutbackCdx.
@@ -11,38 +10,43 @@
 
 # Calculate dates
 TWO_DAYS_AGO=$(date -d "2 days ago" +%Y-%m-%d)
-YESTERDAY=$(date -d "yesterday" +%Y-%m-%d)
+TODAY=$(date +%Y-%m-%d)
 
 #TEG LOCAL TEST
 #WARC_FOLDER="/home/teg/temp/ll"
-#OUTPUT_FOLDER="/home/teg/temp/logs"
+OUTPUT_FOLDER="/home/teg/temp/logs"
 
 WARC_FOLDER="/netarkivet"
 OUTPUT_FOLDER="/netarkiv-cdx/logs/"
 
 # Output filename (only the two dates, clean)
-OUTPUT_FILE="${OUTPUT_FOLDER}/${TWO_DAYS_AGO}_${YESTERDAY}.txt"
+OUTPUT_FILE="${OUTPUT_FOLDER}/${TWO_DAYS_AGO}_${TODAY}.txt"
 
 #CDX-workflow variables
-WORKFLOW_JAR="/netarkiv-cdx/cdx-index-workflow/jwarc_workflow.jar"
+#WORKFLOW_JAR="/home/teg/temp/jwarc-cdx-indexer-workflow-1.1-jar-with-dependencies.jar"
+WORKFLOW_JAR="/netarkiv-cdx/cdx-index-workflow/jwarc-cdx-indexer-workflow-1.1-jar-with-dependencies.jar"
 
-WORKFLOW_MAIN_CLASS="org.netpreserve.jwarc.workflows.CdxIndexerWorkflow"
+WORKFLOW_MAIN_CLASS="dk.kb.cdx.workflow.CdxIndexerWorkflow"
 WORKFLOW_THREADS=8
 WORKFLOW_CDX_URL="http://netarkivet-cdx-02p.bitarkiv.kb.dk:8081/index?badLines=skip"
 OUTPUT_FILE_COMPLETED="${OUTPUT_FILE}.COMPLETED"
 WORKFLOW_APPEND_LOG="cdx_indexer_workflow.log"
+METADATA_IGNORE="metadata"
+DRY_RUN="false"
+ABSOLUTE_PATH="true"
 
 # Start timing the find command
 START_TIME=$(date +%s)
 
 echo "Starting locating new warc-files and will write new files to: ${OUTPUT_FILE}"
 
-# Reliable way to get files from 2 days ago (inclusive) up to yesterday (inclusive)
-# This strictly excludes anything modified today or later. This can take 1-2 hours, so good enough for now(we have 7M warc-files total).
+# Reliable way to get files from 2 days ago (inclusive) up to yesterday (inclusive).This can take 1-2 hours, so good enough for now(we have 7M warc-files total).
+echo "find ${WARC_FOLDER} -type f  -newermt "${TWO_DAYS_AGO}" ! -newermt "${TODAY}""
+
+
 find ${WARC_FOLDER} -type f \
     -newermt "${TWO_DAYS_AGO}" \
-    ! -newermt "${YESTERDAY}" \
-    -newermt "${YESTERDAY}" \
+    ! -newermt "${TODAY}"     
     > "${OUTPUT_FILE}"
 
 # End timing
@@ -69,15 +73,15 @@ fi
 
 # When upgrading to latest version of the jwarc-workflow, the main package has been changes and more arguments added to main class
 # Example of posting a file containing  warc-files names to the CDX-indexer workflow
-# java -Xmx16g -cp jwarc_workflow.jar  org.netpreserve.jwarc.workflows.CdxIndexerWorkflow 8 http://netarkivet-cdx-02p.bitarkiv.kb.dk:8081/index?badLines=skip /netarkiv-cdx/warcs.20250501_to_20251217.txt  /netarkiv-cdx/warcs.20250501_to_20251217.txt.COMPLETED.txt 2>&1 >> cdx_indexer_workflow_warcs.20250501_to_20251217.log  
+# java -Xmx16g -cp jwarc-cdx-indexer-workflow-1.1-jar-with-dependencies.jar dk.kb.cdx.workflow.CdxIndexerWorkflow http://netarkivet-cdx-02p.bitarkiv.kb.dk:8081/index?badLines=skip /home/teg/temp/logs/text.txt  /home/teg/temp/logs/text.txt.COMPLETED true 8 metadata false 2>&1 >> cdx_indexer_workflow_warcs.20250501_to_20251217.log  
+
 
 #Start the workflow
 
 echo "Starting java workflow with command:"
-echo "java -Xmx16g -cp ${WORKFLOW_JAR} ${WORKFLOW_MAIN_CLASS} ${WORKFLOW_THREADS} ${WORKFLOW_CDX_URL} ${OUTPUT_FILE} ${OUTPUT_FILE_COMPLETED} 2>&1 >> ${WORKFLOW_APPEND_LOG}"
-java  -Xmx16g -cp ${WORKFLOW_JAR} ${WORKFLOW_MAIN_CLASS} ${WORKFLOW_THREADS} ${WORKFLOW_CDX_URL} ${OUTPUT_FILE} ${OUTPUT_FILE_COMPLETED} 2>&1 >> ${WORKFLOW_APPEND_LOG}
+echo "java -Xmx16g -cp ${WORKFLOW_JAR} ${WORKFLOW_MAIN_CLASS} ${WORKFLOW_CDX_URL} ${OUTPUT_FILE} ${OUTPUT_FILE_COMPLETED} ${ABSOLUTE_PATH} ${WORKFLOW_THREADS} ${METADATA_IGNORE} ${DRY_RUN} 2>&1 >> ${WORKFLOW_APPEND_LOG}"
+java  -Xmx16g -cp ${WORKFLOW_JAR} ${WORKFLOW_MAIN_CLASS} ${WORKFLOW_CDX_URL} ${OUTPUT_FILE} ${OUTPUT_FILE_COMPLETED} ${ABSOLUTE_PATH} ${WORKFLOW_THREADS} ${METADATA_IGNORE} ${DRY_RUN} 2>&1 >> ${WORKFLOW_APPEND_LOG}
 
 echo "Job finished at $(date)"
-
 
 

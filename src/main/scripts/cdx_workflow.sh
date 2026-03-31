@@ -71,7 +71,6 @@ if [ "$FILE_COUNT" -gt 0 ]; then
     echo "   Last file:  $(tail -n 1 "${OUTPUT_FILE}")"
 fi
 
-# When upgrading to latest version of the jwarc-workflow, the main package has been changes and more arguments added to main class
 # Example of posting a file containing  warc-files names to the CDX-indexer workflow
 # java -Xmx16g -cp jwarc-cdx-indexer-workflow-1.1-jar-with-dependencies.jar dk.kb.cdx.workflow.CdxIndexerWorkflow http://netarkivet-cdx-02p.bitarkiv.kb.dk:8081/index?badLines=skip /home/teg/temp/logs/text.txt  /home/teg/temp/logs/text.txt.COMPLETED true 8 metadata false 2>&1 >> cdx_indexer_workflow_warcs.20250501_to_20251217.log  
 

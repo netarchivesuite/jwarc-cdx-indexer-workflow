@@ -14,7 +14,7 @@ TODAY=$(date +%Y-%m-%d)
 
 #TEG LOCAL TEST
 #WARC_FOLDER="/home/teg/temp/ll"
-OUTPUT_FOLDER="/home/teg/temp/logs"
+#OUTPUT_FOLDER="/home/teg/temp/logs"
 
 WARC_FOLDER="/netarkivet"
 OUTPUT_FOLDER="/netarkiv-cdx/logs/"

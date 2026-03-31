@@ -46,7 +46,7 @@ echo "find command: find ${WARC_FOLDER} -type f  -newermt "${TWO_DAYS_AGO}" ! -n
 
 find ${WARC_FOLDER} -type f \
     -newermt "${TWO_DAYS_AGO}" \
-    ! -newermt "${TODAY}"     
+    ! -newermt "${TODAY}" \
     > "${OUTPUT_FILE}"
 
 # End timing

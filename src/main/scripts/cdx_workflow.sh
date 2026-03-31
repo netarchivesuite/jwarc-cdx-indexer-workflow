@@ -41,7 +41,7 @@ START_TIME=$(date +%s)
 echo "Starting locating new warc-files and will write new files to: ${OUTPUT_FILE}"
 
 # Reliable way to get files from 2 days ago (inclusive) up to yesterday (inclusive).This can take 1-2 hours, so good enough for now(we have 7M warc-files total).
-echo "find ${WARC_FOLDER} -type f  -newermt "${TWO_DAYS_AGO}" ! -newermt "${TODAY}""
+echo "find command: find ${WARC_FOLDER} -type f  -newermt "${TWO_DAYS_AGO}" ! -newermt "${TODAY}""
 
 
 find ${WARC_FOLDER} -type f \

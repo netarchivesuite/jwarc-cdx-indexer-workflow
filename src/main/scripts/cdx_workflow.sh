@@ -2,7 +2,7 @@
 
 # The CDX-workflow java repository is found here: https://github.com/netarchivesuite/jwarc-cdx-indexer-workflow/tree/main/src/main/java/dk/kb/cdx/workflow
 
-# The script will find files in /netarkive mount that are 2 days old not counting today and will write them to a text file. ie: 026-03-27_2026-03-29.txt
+# The script will find files in /netarkive mount that are 2 days old not counting today and will write them to a text file. ie: 2026-03-27_2026-03-29.txt
 # The java workflow is then given the input-file and other parameters such as URL to the CDX-server.  For each warc-fil in the list, the workflow will index it into OutbackCdx.
 # When files are completed they will be written to same filename with .COMPLETED appended.
 # The java workflow will append log into the WORKFLOW_APPEND_LOG configured file.

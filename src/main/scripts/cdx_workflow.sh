@@ -37,17 +37,12 @@ ABSOLUTE_PATH="true"
 
 # Start timing the find command
 START_TIME=$(date +%s)
-
+echo "Job started: ${START_TIME}"
 echo "Starting locating new warc-files and will write new files to: ${OUTPUT_FILE}"
 
 # Reliable way to get files from 2 days ago (inclusive) up to yesterday (inclusive).This can take 1-2 hours, so good enough for now(we have 7M warc-files total).
-echo "find command: find ${WARC_FOLDER} -type f  -newermt "${TWO_DAYS_AGO}" ! -newermt "${TODAY}""
-
-
-find ${WARC_FOLDER} -type f \
-    -newermt "${TWO_DAYS_AGO}" \
-    ! -newermt "${TODAY}" \
-    > "${OUTPUT_FILE}"
+echo "find command: find ${WARC_FOLDER} -type f -newermt "${TWO_DAYS_AGO}" ! -newermt "${TODAY}""
+find ${WARC_FOLDER} -type f -newermt "${TWO_DAYS_AGO}" ! -newermt "${TODAY}"  > "${OUTPUT_FILE}"
 
 # End timing
 END_TIME=$(date +%s)
@@ -73,7 +68,6 @@ fi
 
 # Example of posting a file containing  warc-files names to the CDX-indexer workflow
 # java -Xmx16g -cp jwarc-cdx-indexer-workflow-1.1-jar-with-dependencies.jar dk.kb.cdx.workflow.CdxIndexerWorkflow http://netarkivet-cdx-02p.bitarkiv.kb.dk:8081/index?badLines=skip /home/teg/temp/logs/text.txt  /home/teg/temp/logs/text.txt.COMPLETED true 8 metadata false 2>&1 >> cdx_indexer_workflow_warcs.20250501_to_20251217.log  
-
 
 #Start the workflow
 
